@@ -2,6 +2,7 @@ package com.ganet.catfish.hondascreenganet;
 
 /**
  * Created by oleg on 25.07.2016.
+ * current play active track
  */
 public class ActiveTrack {
 
@@ -22,7 +23,7 @@ public class ActiveTrack {
     /*
     need to parse active track info.
      */
-    public void updateInfo( String infoStr ) {
+    public void updateActiveTrackInfo( String data ) {
 
     }
 }

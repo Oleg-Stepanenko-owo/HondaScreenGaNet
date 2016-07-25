@@ -4,7 +4,7 @@ package com.ganet.catfish.hondascreenganet;
  * Created by oleg on 25.07.2016.
  */
 public class MainGanetPKG {
-    static public enum eCommands {
+     static public enum eCommands {
         eTIME,      // 600D01000140
         eTRACK,     // 684B3102
         eVALUE      // 680231020200
@@ -23,11 +23,11 @@ public class MainGanetPKG {
         eNONE
     };
 
-    String src, dst;
-    eCommands command;
-    eExCommand exCommand;
-    String data;
-    String crs;
+    private String src, dst;
+    private eCommands command;
+    private eExCommand exCommand;
+    private String data;
+    private String crs;
 
     MainGanetPKG() {
         exCommand = eExCommand.eNONE;

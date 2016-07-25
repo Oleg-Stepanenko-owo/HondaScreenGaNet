@@ -5,15 +5,19 @@ package com.ganet.catfish.hondascreenganet;
  */
 public class Track {
 
-    int folderId;
-    int subFolderId;
-    int trackId;
-    boolean selectStatus;
-    String trackName;
-    boolean NameB1, NameB2, NameB3, NameB4;
-    int NameBlocks;
+    private int folderId;
+    private int subFolderId;
+    private int trackId;
+    private boolean selectStatus;
+    private String trackName;
+    private boolean NameB1, NameB2, NameB3, NameB4;
+    private int NameBlocks;
 
-    boolean isNameComplete() {
+    public boolean isNameComplete() {
         return true;
+    }
+
+    public void updateTrackInfo( String data ) {
+
     }
 }
