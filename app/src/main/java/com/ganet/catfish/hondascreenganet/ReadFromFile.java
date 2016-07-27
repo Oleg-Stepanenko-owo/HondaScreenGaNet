@@ -1,18 +1,82 @@
 package com.ganet.catfish.hondascreenganet;
 
+import android.os.Environment;
+
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+
 /**
  * Created by oleg on 25.07.2016.
  * this class need for emulate GaNet from stored logs in file.
  */
-public class ReadFromFile {
+public class ReadFromFile extends Thread {
     private String fName;
+    private String returnLineVal;
+    private ParserGANET mParser;
+    private GaNetManager gaNetManager;
 
-    ReadFromFile( String fileName ) {
-
+    ReadFromFile( String fileName, GaNetManager manager ) {
+        fName = fileName;
+        gaNetManager = manager;
     }
 
-    public String getLine() {
-     String returnVal = "";
-        return returnVal;
+    public void startRead( ParserGANET parserObj ) {
+        mParser = parserObj;
+        this.start();
     }
+
+    public void getLine( ) {
+//        return returnLineVal;
+        synchronized (this) {
+            ParserGANET.eParse eParse = mParser.parseLine(returnLineVal);
+            if( eParse != ParserGANET.eParse.eNone ){
+                gaNetManager.invalidate();
+            }
+        }
+    }
+
+    @Override
+    public void run() {
+        File file = new File( fName );
+        StringBuilder text = new StringBuilder();
+
+        try {
+            BufferedReader br = new BufferedReader( new FileReader(file) );
+            while ((returnLineVal = br.readLine()) != null) {
+                getLine();
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            br.close();
+        }
+        catch (IOException e) {
+            //You'll need to add proper error handling here
+        }
+    }
+
+//    public void readFile( ){
+//        File file = new File( fName );
+//        StringBuilder text = new StringBuilder();
+//
+//        try {
+//            BufferedReader br = new BufferedReader( new FileReader(file) );
+//            while ((returnLineVal = br.readLine()) != null) {
+//                getLine();
+//                try {
+//                    Thread.sleep(100);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
+//            }
+//            br.close();
+//        }
+//        catch (IOException e) {
+//            //You'll need to add proper error handling here
+//        }
+//    }
 }

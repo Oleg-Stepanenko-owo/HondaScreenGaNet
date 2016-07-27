@@ -6,11 +6,11 @@ package com.ganet.catfish.hondascreenganet;
  */
 public class ActiveTrack {
 
-    int diskID;
-    int playMin;
-    int playSec;
-    int folderId;
-    int trackId;
+    public int diskID;
+    public int playMin;
+    public int playSec;
+    public int folderId;
+    public int trackId;
 
     ActiveTrack(){
         diskID = -1;
@@ -23,7 +23,7 @@ public class ActiveTrack {
     /*
     need to parse active track info.
      */
-    public void updateActiveTrackInfo( String data ) {
+    public void updateActiveTrackInfo( ActiveTrack data ) {
 
     }
 }
