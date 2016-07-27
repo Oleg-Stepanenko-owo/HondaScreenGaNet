@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">HondaScreenGaNet</string>
+    <string name="defaultTime">00:00</string>
 </resources>

@@ -37,9 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case eFolder:
                 break;
             case eTime:
-                String ttt = mGANET.getParser().getDevTime().getTime();
-                TextView tView = (TextView) findViewById( R.id.textView1);
-                tView.setText( ttt );
+                updateTimeUi(mGANET.getParser().getDevTime().getTime());
                 break;
             case eNone:
                 break;
@@ -50,5 +48,15 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         readFileObj.startRead( mGANET.getParser() );
         // timeTextView.setText( "1244" );
+    }
+
+    public void updateTimeUi( final String timeUI ){
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              timeTextView.setText( timeUI );
+                          }
+                      }
+        );
     }
 }
