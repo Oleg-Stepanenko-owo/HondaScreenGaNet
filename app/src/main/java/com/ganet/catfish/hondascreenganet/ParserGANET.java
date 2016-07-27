@@ -1,5 +1,7 @@
 package com.ganet.catfish.hondascreenganet;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -18,18 +20,22 @@ public class ParserGANET {
     private String receivedLine;
     private ActiveTrack mActiveTrack;
     private Folder mFolder;
-    private Track mTrack;
+    private Map<Integer, Track> mTrack;
     private DevTime mDevTime;
+    // private Track tempParseTrack;
 
 
     private eParse activeParseID;
 
     private String srcDev, dstDev;
     private String commandDev;
+    private String exCommand;
     private String dataDev;
 
     ParserGANET() {
-
+        mTrack = new HashMap<Integer, Track>();
+        mTrack.clear();
+        mActiveTrack = new ActiveTrack();
     }
 
     public eParse parseLine( String line ){
@@ -46,9 +52,37 @@ public class ParserGANET {
                 dataDev = line.substring( chPos, chPos += 4 );
                 mDevTime = new DevTime( dataDev );
                 activeParseID = eParse.eTime;
+            } else if( (line.indexOf("684B3102") != -1) && dstDev.equals("131") ) {
+                commandDev = line.substring( chPos, chPos += 8 );
+                exCommand = line.substring( chPos, chPos += 4 );
+                int endPos = (line.length() - 3); //without 2last symbols (CRS)
+                dataDev = line.substring( chPos, endPos );
+                if( getExCommand(exCommand) == MainGanetPKG.eExCommand.eINFO ) {
+                    Track tempParseTrack = new Track();
+                    tempParseTrack.updateActiveTrackInfo(dataDev);
+
+                    if( mTrack.containsKey(tempParseTrack.getTrackId()) ) {
+                        Track margeParseTrack = mTrack.get(tempParseTrack.getTrackId());
+                        margeParseTrack.trackMarge(tempParseTrack);
+                        mTrack.put(tempParseTrack.getTrackId(), margeParseTrack);
+                    } else mTrack.put(tempParseTrack.getTrackId(), tempParseTrack );
+
+//                    mActiveTrack.updateActiveTrackInfo(dataDev);
+                    activeParseID = eParse.eTr;
+                }
             }
         }
         return activeParseID;
+    }
+
+    private MainGanetPKG.eExCommand getExCommand(String exCommand) {
+        switch( exCommand ) {
+            case "0377":
+                return MainGanetPKG.eExCommand.eINFO;
+            case "0300":
+                return MainGanetPKG.eExCommand.ePLAY;
+        }
+        return MainGanetPKG.eExCommand.eNONE;
     }
 
     public ActiveTrack getActiveTrack(){
@@ -59,9 +93,10 @@ public class ParserGANET {
         return mFolder;
     }
 
-    public Track getTrack(){
-        return mTrack;
+    public Track getTrackByID( int id ){
+        return mTrack.get( Integer.valueOf(id) );
     }
+    public  Map<Integer, Track> getTracksList() { return mTrack; }
 
     public DevTime getDevTime() { return mDevTime; }
 

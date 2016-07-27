@@ -27,17 +27,16 @@ public class GaNetManager {
     public void invalidate() {
         switch ( mParser.getActiveParseID() ){
             case eTr:
+                mainActivity.invalidate( ParserGANET.eParse.eTr );
                 break;
             case eFolder:
                 break;
             case eTime:
-//                devTime = getParser().getDevTime();
                 mainActivity.invalidate( ParserGANET.eParse.eTime );
                 break;
             case eNone: ;
                 break;
             case eActiveTr:
-                mActiveTrack.updateActiveTrackInfo( mParser.getActiveTrack() );
                 mainActivity.invalidate( ParserGANET.eParse.eActiveTr );
                 break;
         }

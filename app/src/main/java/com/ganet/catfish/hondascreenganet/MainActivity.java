@@ -3,10 +3,12 @@ package com.ganet.catfish.hondascreenganet;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.ListView;
 import android.widget.TextView;
 
-import java.io.File;
+import java.util.Map;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -14,6 +16,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ReadFromFile readFileObj;
     private TextView timeTextView;
     private Button mStartBtn;
+    private TextView tracksList;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +24,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         setContentView(R.layout.activity_main);
         timeTextView = (TextView) findViewById( R.id.textTime );
         mStartBtn = (Button) findViewById( R.id.button1);
+        tracksList = (TextView) findViewById(R.id.trackView);
 
 
         mGANET = new GaNetManager( this );
@@ -33,6 +37,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case eActiveTr:
                 break;
             case eTr:
+                updateTrackView(mGANET.getParser().getTracksList());
                 break;
             case eFolder:
                 break;
@@ -47,7 +52,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     public void onClick(View view) {
         readFileObj.startRead( mGANET.getParser() );
-        // timeTextView.setText( "1244" );
     }
 
     public void updateTimeUi( final String timeUI ){
@@ -55,6 +59,23 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                           @Override
                           public void run() {
                               timeTextView.setText( timeUI );
+                          }
+                      }
+        );
+    }
+
+    public void updateTrackView(final Map<Integer, Track> tracks ){
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              String retTracks = "";
+                              for (Map.Entry<Integer, Track> e : tracks.entrySet()) {
+                                  if( e.getValue().isReadyToShow() ) {
+                                      retTracks += e.getValue().getTrackId() + ":" + e.getValue().getName() + "\r\n";
+//                                  System.out.println(e.getKey() + ": " + e.getValue());
+                                  }
+                              }
+                              tracksList.setText(retTracks);
                           }
                       }
         );

@@ -58,25 +58,4 @@ public class ReadFromFile extends Thread {
             //You'll need to add proper error handling here
         }
     }
-
-//    public void readFile( ){
-//        File file = new File( fName );
-//        StringBuilder text = new StringBuilder();
-//
-//        try {
-//            BufferedReader br = new BufferedReader( new FileReader(file) );
-//            while ((returnLineVal = br.readLine()) != null) {
-//                getLine();
-//                try {
-//                    Thread.sleep(100);
-//                } catch (InterruptedException e) {
-//                    e.printStackTrace();
-//                }
-//            }
-//            br.close();
-//        }
-//        catch (IOException e) {
-//            //You'll need to add proper error handling here
-//        }
-//    }
 }

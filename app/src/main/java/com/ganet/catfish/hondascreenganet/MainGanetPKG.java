@@ -20,6 +20,7 @@ public class MainGanetPKG {
         eERROR,         //0400
         eFOLDER,        //030B
         eFINISH,        //F200
+        eINFO,          //0377
         eNONE
     };
 
