@@ -16,7 +16,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ReadFromFile readFileObj;
     private TextView timeTextView;
     private Button mStartBtn;
-    private TextView tracksList;
+    private TextView tracksList, tvAction, tvVol, tvPlayTrack;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,28 +25,69 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         timeTextView = (TextView) findViewById( R.id.textTime );
         mStartBtn = (Button) findViewById( R.id.button1);
         tracksList = (TextView) findViewById(R.id.trackView);
+        tvAction = (TextView) findViewById(R.id.tvAction);
+        tvVol = (TextView) findViewById(R.id.tvVol);
+        tvPlayTrack = (TextView) findViewById(R.id.tvPlayTrack);
+
 
 
         mGANET = new GaNetManager( this );
-        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/yamGANET1.log", mGANET );
+        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/yam_fm1.txt", mGANET );
         mStartBtn.setOnClickListener( this );
     }
 
     public void invalidate ( ParserGANET.eParse updateAction ) {
         switch ( updateAction ){
             case eActiveTr:
+                updateActiveTrackView( mGANET.mActiveTrack );
                 break;
             case eTr:
-                updateTrackView(mGANET.getParser().getTracksList());
+                updateTrackView( mGANET.mTrack );
                 break;
             case eFolder:
                 break;
             case eTime:
-                updateTimeUi(mGANET.getParser().getDevTime().getTime());
+                updateTimeUi(mGANET.mDevTime.getTime());
+                break;
+            case eEjectDisk:
+                mGANET.currentDiskId = 0;
+                mGANET.currentLevel = 0;
+                updataDiskUi( mGANET.currentDiskId );
+                break;
+            case eInsertDisk:
+                updataDiskUi( mGANET.currentDiskId );
+                break;
+            case eVolume:
+                updateVolUi( mGANET.mVol.getVol() );
                 break;
             case eNone:
                 break;
         }
+    }
+
+    private void updataDiskUi(final int diskID ) {
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              TextView tvDisk = (TextView) findViewById( R.id.tvTrackDisk );
+                              TextView tvTr = (TextView) findViewById( R.id.tvTrackId );
+                              TextView tvTime = (TextView) findViewById( R.id.tvTrackTime );
+
+                              //Eject
+                              if( diskID == 0 ){
+                                  tracksList.setText("");
+                                  tvDisk.setText( "" );
+                                  tvTr.setText( "" );
+                                  tvTime.setText( R.string.defaultTime );
+                                  tvAction.setText("EJECT");
+                              } else { //Insert disk
+                                  tvAction.setText("ISERT");
+                                  TextView tvDisk1 = (TextView) findViewById( R.id.tvTrackDisk );
+                                  tvDisk.setText( String.valueOf(diskID) );
+                              }
+                          }
+                      }
+        );
     }
 
     @Override
@@ -54,7 +95,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         readFileObj.startRead( mGANET.getParser() );
     }
 
-    public void updateTimeUi( final String timeUI ){
+    public void updateTimeUi( final String timeUI ) {
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
@@ -64,7 +105,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         );
     }
 
-    public void updateTrackView(final Map<Integer, Track> tracks ){
+    public void updateVolUi( final int iVol ) {
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              tvVol.setText( String.valueOf(iVol) );
+                          }
+                      }
+        );
+    }
+
+    public void updateTrackView(final Map<Integer, Track> tracks ) {
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
@@ -76,6 +127,25 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                                   }
                               }
                               tracksList.setText(retTracks);
+                          }
+                      }
+        );
+    }
+
+    public void updateActiveTrackView( final ActiveTrack activeTrack ) {
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              TextView tvDisk = (TextView) findViewById( R.id.tvTrackDisk );
+                              TextView tvTr = (TextView) findViewById( R.id.tvTrackId );
+                              TextView tvTime = (TextView) findViewById( R.id.tvTrackTime );
+
+                              tvDisk.setText( String.valueOf(activeTrack.diskID) );
+                              tvTr.setText( String.valueOf(activeTrack.trackId) );
+                              tvTime.setText( String.valueOf(activeTrack.playMin) + ":" + String.valueOf(activeTrack.playSec) );
+                              tvAction.setText("PLAY");
+
+                              tvPlayTrack.setText( mGANET.getTrackById(activeTrack.trackId) );
                           }
                       }
         );

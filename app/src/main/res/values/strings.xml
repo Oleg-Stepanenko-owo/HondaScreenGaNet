@@ -1,4 +1,8 @@
 <resources>
     <string name="app_name">HondaScreenGaNet</string>
     <string name="defaultTime">00:00</string>
+    <string name="stDisk">Disk#</string>
+    <string name="stTrack">Track#</string>
+    <string name="stTime">Time  </string>
+    <string name="stVolume">Vol:</string>
 </resources>

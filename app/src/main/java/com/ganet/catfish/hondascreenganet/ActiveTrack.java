@@ -10,18 +10,7 @@ public class ActiveTrack {
     public int playMin;
     public int playSec;
     public int folderId;
-    public int subFolderId;
     public int trackId;
-    public boolean selectedTrack;
-
-    private int currPack, allPack;
-    private boolean p0, p1, p2, p3;
-    private String pS0, pS1, pS2, pS3;
-    private boolean readyShow;
-
-    private boolean isReadyToShow() {
-        return readyShow;
-    };
 
     ActiveTrack() {
         diskID = -1;
@@ -29,36 +18,45 @@ public class ActiveTrack {
         playSec = 0;
         folderId = -1;
         trackId = -1;
-        resetTrackName();
+
     }
 
+    /**
+     20 684B310203   	00     	F3    	60   	FF  F020    0F 03 0F    46    FFFFFFFF  2130 0F 03 0F 19002030200101  C5
+     20 684B310203   	00     	F3    	60   	FF  F003    0F 01 0F    10    FFFFFFFF  2130 0F 03 0F 18002030200101  6F
+     20	684B310203		00		F5		60		FF	F235	0F 00 0F	02	  FFFFFFFF	2130 0F 00 0F 03002030200000  7C
+     20	684B310203		00		F5		60		FF	F236	0F 00 0F	02	  FFFFFFFF	2130 0F 00 0F 03002030200000  7D
+     20	684B310203		00		F3		60		FF	F000	0F 02 0F    43	  FFFFFFFF	2130 0F	03 0F 19002030200101  A1
+        Track pack |     play | DISK |        	  | TIME  |  folder | Track|
+                                                    FFFF - isert
+                                                    F000 - start play
+     <GA:183131684B31020300 F360FFF0000F010F01FFFFFFFF21300F130F03002030200104  5B>
+     <GA:183131684B31020300 F360FFF0090F010F01FFFFFFFF21300F130F03002030200104  64>
+     <GA:183131684B31020300 F360FFF1150F010F01FFFFFFFF21300F130F03002030200104  71>
+     *
+     * @param data
+     */
+    public void updateActiveTrackInfo( String data ) {
+        int textPos = 1;
+        String valueCom;
+        //DISK INFO --------------------
+        valueCom = data.substring( textPos, (textPos +=1) );
+        diskID = Integer.valueOf(valueCom);
 
-    private void resetTrackName() {
-        p0 = false;
-        p1 = p0;
-        p2 = p0;
-        p2 = p0;
-        pS0 = "";
-        pS1 = "";
-        pS2 = "";
-        pS3 = "";
-        readyShow = false;
-    }
+        valueCom = data.substring( textPos+=4, textPos +=2 );
+        valueCom = valueCom.replace( "F", "" );
+        playMin = Integer.valueOf(valueCom);
 
+        valueCom = data.substring( textPos, textPos +=2 );
+        valueCom = valueCom.replace( "F", "" );
+        playSec = Integer.valueOf(valueCom);
 
-    private void updateNameTrack( String text ) {
-        String trackTextTmp = "";
-        for( int a = 2; a < text.length(); a +=2 ) {
-            String strTmp = text.substring( a, a+=2 );
-            if( !strTmp.equals("FF") ) {
-                int tmpInt = Integer.parseInt( strTmp, 16 );
-                trackTextTmp += Character.toString((char)tmpInt);
-            }
-        }
+        valueCom = data.substring( textPos +=2, textPos +=2 );
+        valueCom = valueCom.replace( "F", "" );
+        folderId = Integer.valueOf(valueCom);
 
-        if( currPack == 0 ) { pS0 = trackTextTmp; p0 = true; }
-        else if( currPack == 1 ) { pS1 = trackTextTmp; p1 = true; }
-        else if( currPack == 2 ) { pS2 = trackTextTmp; p2 = true; }
-        else if( currPack == 3 ) { pS3 = trackTextTmp; p3 = true; }
+        valueCom = data.substring( textPos +=2, textPos +=2 );
+        valueCom = valueCom.replace( "F", "" );
+        trackId = Integer.valueOf(valueCom);
     }
 }

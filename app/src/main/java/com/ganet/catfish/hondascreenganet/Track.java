@@ -50,10 +50,10 @@ public class Track {
     */
 
     /**
-     * updateActiveTrackInfo
+     * updateTrackInfo
      * @param data
      */
-    public void updateActiveTrackInfo( String data ) {
+    public void updateTrackInfo( String data ) {
         int textPos = 2;
         String valueCom;
 
@@ -88,15 +88,7 @@ public class Track {
      * @param text
      */
     private void updateNameTrack( String text ) {
-        String trackTextTmp = "";
-        for( int a = 2; a < text.length(); a +=2 ) {
-            String strTmp = text.substring( a, a+=2 );
-            if( !strTmp.equals("FF") ) {
-                int tmpInt = Integer.parseInt( strTmp, 16 );
-                trackTextTmp += Character.toString((char)tmpInt);
-            }
-        }
-
+        String trackTextTmp = ParserGANET.getString( text );
         if( currPack == 0 ) { pS0 = trackTextTmp; p0 = true; }
         else if( currPack == 1 ) { pS1 = trackTextTmp; p1 = true; }
         else if( currPack == 2 ) { pS2 = trackTextTmp; p2 = true; }
@@ -156,7 +148,7 @@ public class Track {
      * @return
      */
     public String getName() {
-        String returnVal = "<.......>";
+        String returnVal = "";
 
         if( isReadyToShow() )
             returnVal = pS0 + pS1 + pS2 + pS3;

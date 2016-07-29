@@ -1,5 +1,7 @@
 package com.ganet.catfish.hondascreenganet;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Vector;
 
 /**
@@ -7,38 +9,41 @@ import java.util.Vector;
  */
 public class GaNetManager {
     private MainActivity mainActivity;
+    public int currentDiskId;
+    public int currentLevel;
 
+    public Folder mFolder;
+    public Map<Integer, Track> mTrack;
+    public DevTime mDevTime;
     public ActiveTrack mActiveTrack;
-    public Vector<Folder> vFolder;
-    public Vector<Track> vTrack;
-    public DevTime devTime;
+    public Volume mVol;
+    public RadioAction mRadio;
+
     public ParserGANET mParser;
 
     GaNetManager( MainActivity mainA ) {
         mainActivity = mainA;
-        mParser = new ParserGANET();
         mActiveTrack = new ActiveTrack();
+        mTrack = new HashMap<Integer, Track>();
+        mDevTime = new DevTime();
+        mFolder = new Folder();
+        mVol = new Volume();
+        mRadio = new RadioAction();
+        mParser = new ParserGANET( mActiveTrack, mFolder, mDevTime, mTrack, mVol, mRadio );
     }
 
     public ParserGANET getParser() {
         return mParser;
     }
 
-    public void invalidate() {
-        switch ( mParser.getActiveParseID() ){
-            case eTr:
-                mainActivity.invalidate( ParserGANET.eParse.eTr );
-                break;
-            case eFolder:
-                break;
-            case eTime:
-                mainActivity.invalidate( ParserGANET.eParse.eTime );
-                break;
-            case eNone: ;
-                break;
-            case eActiveTr:
-                mainActivity.invalidate( ParserGANET.eParse.eActiveTr );
-                break;
+    public void invalidate() { mainActivity.invalidate( mParser.getActiveParseID() ); }
+
+    public String getTrackById( int trackID ){
+        String returnVal = "";
+        if( mTrack.containsKey(Integer.valueOf(trackID)) ){
+            returnVal = mTrack.get(Integer.valueOf(trackID)).getName();
         }
+        return returnVal;
     }
+
 }

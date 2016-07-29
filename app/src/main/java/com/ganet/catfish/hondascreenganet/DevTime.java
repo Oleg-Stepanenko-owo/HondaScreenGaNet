@@ -7,7 +7,7 @@ public class DevTime {
     private String hour;
     private String min;
 
-    DevTime( String data ) {
+    public void setDevTime( String data ) {
         hour = "00";
         min = "00";
 
