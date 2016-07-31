@@ -42,7 +42,9 @@ public class GaNetManager {
         return mParser;
     }
 
-    public void invalidate( ParserGANET.eParse activeParseID ) { mainActivity.invalidate( activeParseID ); }
+    public void invalidate( ParserGANET.eParse activeParseID ) {
+            mainActivity.invalidate( activeParseID );
+    }
 
     public String getTrackById( int trackID ){
         String returnVal = "";

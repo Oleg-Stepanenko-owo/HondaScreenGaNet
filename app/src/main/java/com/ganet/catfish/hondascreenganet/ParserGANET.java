@@ -171,7 +171,10 @@ public class ParserGANET {
                 startAdd = false;
 //                stopAdd = true;
                 retVal += String.valueOf( buffer.charAt(a) );
-                vGANETCommand.add( retVal );
+                if( checkGANET_PKG( retVal ) ) vGANETCommand.add( retVal );
+                else {
+                    System.out.println( "ERROR: " + retVal );
+                }
                 buffer = buffer.substring( a+1, buffer.length() );
                 a = 0;
             } else if (  startAdd ) {
@@ -182,6 +185,11 @@ public class ParserGANET {
 //        return retVal;
     }
 
+    private boolean checkGANET_PKG(String retVal) {
+        if ( retVal.indexOf("<", 1) != -1 ) return false;
+        if ( retVal.indexOf(">", 0 ) != (retVal.length()-1) ) return false;
+        return true;
+    }
 
     static public String getString( String data ) {
         String returnText = "";
@@ -197,23 +205,25 @@ public class ParserGANET {
     private static String UnicodeToString( String Hex ) {
         String enUnicode = null;
         String deUnicode = null;
+        try{
+            for (int i = 0; i < Hex.length(); i++) {
+                if (enUnicode == null)
+                    enUnicode = String.valueOf(Hex.charAt(i));
+                else
+                    enUnicode = enUnicode + Hex.charAt(i);
 
-        for (int i = 0; i < Hex.length(); i++) {
-            if (enUnicode == null)
-                enUnicode = String.valueOf(Hex.charAt(i));
-            else
-                enUnicode = enUnicode + Hex.charAt(i);
-
-            if (i % 4 == 3) {
-                if (enUnicode != null) {
-                    if (deUnicode == null)
-                        deUnicode = String.valueOf((char) Integer.valueOf(enUnicode, 16).intValue());
-                    else
-                        deUnicode = deUnicode
-                                + String.valueOf((char) Integer.valueOf(enUnicode, 16).intValue());
+                if (i % 4 == 3) {
+                    if (enUnicode != null) {
+                        if (deUnicode == null)
+                            deUnicode = String.valueOf((char) Integer.valueOf(enUnicode, 16).intValue());
+                        else
+                            deUnicode += String.valueOf((char) Integer.valueOf(enUnicode, 16).intValue());
+                    }
+                    enUnicode = null;
                 }
-                enUnicode = null;
             }
+        } catch (NumberFormatException e) {
+            deUnicode = "---- ERROR ----";
         }
 
         return deUnicode;

@@ -20,8 +20,10 @@ import com.ganet.catfish.hondascreenganet.Data.ActiveTrack;
 import com.ganet.catfish.hondascreenganet.Data.Track;
 
 import java.lang.ref.WeakReference;
+import java.util.ConcurrentModificationException;
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -178,7 +180,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 updateActiveTrackView( mGANET.mActiveTrack );
                 break;
             case eTr:
-                updateTrackView( mGANET.mTrack );
+                updateTrackView( new TreeMap<Integer, Track>(mGANET.mTrack) );
                 break;
             case eFolder:
                 break;
@@ -256,13 +258,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                           @Override
                           public void run() {
                               String retTracks = "";
-                              for (Map.Entry<Integer, Track> e : tracks.entrySet()) {
-                                  if( e.getValue().isReadyToShow() ) {
-                                      retTracks += e.getValue().getTrackId() + ":" + e.getValue().getName() + "\r\n";
+                              try{
+                                  for (Map.Entry<Integer, Track> e : tracks.entrySet()) {
+                                      if( e.getValue().isReadyToShow() ) {
+                                          retTracks += e.getValue().getTrackId() + ":" + e.getValue().getName() + "\r\n";
 //                                  System.out.println(e.getKey() + ": " + e.getValue());
+                                      }
                                   }
+                                  tracksList.setText(retTracks);
+                              } catch (ConcurrentModificationException m){
+                                  System.out.println("ERROR: " + m.getMessage() );
                               }
-                              tracksList.setText(retTracks);
                           }
                       }
         );
