@@ -28,12 +28,8 @@ public class ReadFromFile extends Thread {
     }
 
     public void getLine( ) {
-//        return returnLineVal;
         synchronized (this) {
-            ParserGANET.eParse eParse = mParser.parseLine(returnLineVal);
-            if( eParse != ParserGANET.eParse.eNone ){
-                gaNetManager.invalidate();
-            }
+            mParser.parseLine(returnLineVal);
         }
     }
 
@@ -46,11 +42,11 @@ public class ReadFromFile extends Thread {
             BufferedReader br = new BufferedReader( new FileReader(file) );
             while ((returnLineVal = br.readLine()) != null) {
                 getLine();
-                try {
-                    Thread.sleep(100);
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
+//                try {
+////                    Thread.sleep(100);
+//                } catch (InterruptedException e) {
+//                    e.printStackTrace();
+//                }
             }
             br.close();
         }

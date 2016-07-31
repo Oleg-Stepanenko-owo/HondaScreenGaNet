@@ -16,6 +16,10 @@
             </intent-filter>
         </activity>
         <activity android:name=".RadioActivity"></activity>
+        <service
+            android:name="com.ganet.catfish.hondascreenganet.UsbCom"
+            android:enabled="true">
+        </service>
     </application>
 
 </manifest>

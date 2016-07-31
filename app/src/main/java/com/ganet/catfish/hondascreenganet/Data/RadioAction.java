@@ -1,4 +1,4 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
 
 import android.provider.MediaStore;
 
@@ -26,7 +26,7 @@ public class RadioAction {
         eNone
     }
 
-    RadioAction() {
+    public RadioAction() {
         mCurrRAction = eRadioCommand.eNone;
         mRQuality = 0;
         mCommand = new HashMap<String, eRadioCommand>();

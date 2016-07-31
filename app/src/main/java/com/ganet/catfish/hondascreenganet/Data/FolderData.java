@@ -1,4 +1,4 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
 
 import java.util.Vector;
 
@@ -32,14 +32,14 @@ public class FolderData {
     public Vector<Integer> subFoldersId;
 
 
-    FolderData() {
+    public FolderData() {
         allPack = -1;
     }
     /**
      *
      * @param allPk
      */
-    FolderData( int allPk ) {
+    public FolderData(int allPk) {
         pk = new boolean[4];
         pkS = new String[4];
         for( int a = 0; a < 4; a++ ){

@@ -1,4 +1,6 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
+
+import com.ganet.catfish.hondascreenganet.ParserGANET;
 
 /**
  * Created by oleg on 25.07.2016.
@@ -15,7 +17,7 @@ public class Track {
     public String pS0, pS1, pS2, pS3;
 //-----------------------------------------------------
 
-    Track() {
+    public Track() {
         p0 = false;
         p1 = p0;
         p2 = p0;

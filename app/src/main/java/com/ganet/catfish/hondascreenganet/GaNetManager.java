@@ -1,8 +1,14 @@
 package com.ganet.catfish.hondascreenganet;
 
+import com.ganet.catfish.hondascreenganet.Data.ActiveTrack;
+import com.ganet.catfish.hondascreenganet.Data.DevTime;
+import com.ganet.catfish.hondascreenganet.Data.Folder;
+import com.ganet.catfish.hondascreenganet.Data.RadioAction;
+import com.ganet.catfish.hondascreenganet.Data.Track;
+import com.ganet.catfish.hondascreenganet.Data.Volume;
+
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Vector;
 
 /**
  * Created by oleg on 25.07.2016.
@@ -29,14 +35,14 @@ public class GaNetManager {
         mFolder = new Folder();
         mVol = new Volume();
         mRadio = new RadioAction();
-        mParser = new ParserGANET( mActiveTrack, mFolder, mDevTime, mTrack, mVol, mRadio );
+        mParser = new ParserGANET( this );
     }
 
     public ParserGANET getParser() {
         return mParser;
     }
 
-    public void invalidate() { mainActivity.invalidate( mParser.getActiveParseID() ); }
+    public void invalidate( ParserGANET.eParse activeParseID ) { mainActivity.invalidate( activeParseID ); }
 
     public String getTrackById( int trackID ){
         String returnVal = "";

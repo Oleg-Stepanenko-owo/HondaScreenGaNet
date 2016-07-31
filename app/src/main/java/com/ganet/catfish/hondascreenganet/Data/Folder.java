@@ -1,4 +1,7 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
+
+import com.ganet.catfish.hondascreenganet.Data.FolderData;
+import com.ganet.catfish.hondascreenganet.ParserGANET;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -15,7 +18,7 @@ public class Folder {
 
     private Map<Integer, FolderData> mFoldersData;
 
-    Folder() {
+    public Folder() {
         mFoldersData = new HashMap<Integer, FolderData>();
     }
 

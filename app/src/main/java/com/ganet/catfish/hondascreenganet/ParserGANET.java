@@ -1,6 +1,12 @@
 package com.ganet.catfish.hondascreenganet;
 
-import java.util.HashMap;
+import com.ganet.catfish.hondascreenganet.Data.ActiveTrack;
+import com.ganet.catfish.hondascreenganet.Data.DevTime;
+import com.ganet.catfish.hondascreenganet.Data.Folder;
+import com.ganet.catfish.hondascreenganet.Data.RadioAction;
+import com.ganet.catfish.hondascreenganet.Data.Track;
+import com.ganet.catfish.hondascreenganet.Data.Volume;
+
 import java.util.Map;
 import java.util.Vector;
 
@@ -20,6 +26,7 @@ public class ParserGANET {
         eRadio,
         eNone
     }
+    private GaNetManager mGaNET;
 
     private String receivedLine;
     private ActiveTrack mActiveTrack;
@@ -37,105 +44,142 @@ public class ParserGANET {
     private String dataDev;
     private int activeDiskID;
 
+    private String buffer;
+    private Vector<String> vGANETCommand;
+    private boolean startAdd;
+
     /**
      *
-     * @param activeTrack
-     * @param folder
-     * @param devTime
-     * @param track
+     * @param mGaNET
      */
-    ParserGANET( ActiveTrack activeTrack, Folder folder, DevTime devTime, Map<Integer, Track> track, Volume mVol, RadioAction mRadio) {
-        mTrack = track;
-        mDevTime = devTime;
-        mActiveTrack = activeTrack;
-        mFolder = folder;
-        this.mVol = mVol;
-        this.mRadio = mRadio;
+    ParserGANET( GaNetManager mGaNET ){
+        this.mGaNET = mGaNET;
+//            ActiveTrack activeTrack, Folder folder, DevTime devTime, Map<Integer, Track> track, Volume mVol, RadioAction mRadio) {
+        vGANETCommand = new Vector<String>();
+        mTrack = mGaNET.mTrack;
+        mDevTime = mGaNET.mDevTime;
+        mActiveTrack = mGaNET.mActiveTrack;
+        mFolder = mGaNET.mFolder;
+        this.mVol = mGaNET.mVol;
+        this.mRadio = mGaNET.mRadio;
+        buffer = "";
     }
 
-    public eParse parseLine( String line ){
-        activeParseID = eParse.eNone;
-        // <GA:183 100 600D01000140 1517 0000CD> - TIME
-        if( line.indexOf("<GA:") != -1 ){
-            int chPos = 4;
-            srcDev = line.substring( chPos, chPos += 3 );
-            dstDev = line.substring( chPos, chPos += 3 );
+    public void parseLine( String lineTmp ) {
+        extractGaNetLine( lineTmp );
+        for( int a = 0; a < vGANETCommand.size(); a++ ) {
+            String line = vGANETCommand.get(a);
+            activeParseID = eParse.eNone;
+            // <GA:183 100 600D01000140 1517 0000CD> - TIME
+            if( (line.indexOf("<GA:") != -1) && (line.indexOf(">") != -1) ){
+                int chPos = 4;
+                srcDev = line.substring( chPos, chPos += 3 );
+                dstDev = line.substring( chPos, chPos += 3 );
 
-            // TIME
-            if( line.indexOf("600D01000140", chPos) != -1 ){
-                commandDev = line.substring( chPos, chPos += 12 );
-                dataDev = line.substring( chPos, chPos += 4 );
-                mDevTime.setDevTime( dataDev );
-                activeParseID = eParse.eTime;
-            } else if( (line.indexOf("684B3102") != -1) && dstDev.equals("131") ) {
-                commandDev = line.substring( chPos, chPos += 8 );
-                exCommand = line.substring( chPos, chPos += 4 );
-                int endPos = (line.length() - 3); //without 2last symbols (CRS)
-                dataDev = line.substring( chPos, endPos );
+                // TIME
+                if( line.indexOf("600D01000140", chPos) != -1 ){
+                    commandDev = line.substring( chPos, chPos += 12 );
+                    dataDev = line.substring( chPos, chPos += 4 );
+                    mDevTime.setDevTime( dataDev );
+                    activeParseID = eParse.eTime;
+                } else if( (line.indexOf("684B3102") != -1) && dstDev.equals("131") ) {
+                    commandDev = line.substring( chPos, chPos += 8 );
+                    exCommand = line.substring( chPos, chPos += 4 );
+                    int endPos = (line.length() - 3); //without 2last symbols (CRS)
+                    dataDev = line.substring( chPos, endPos );
 
-                MainGanetPKG.eExCommand parseExCommand = getExCommand(exCommand);
-                if( parseExCommand == MainGanetPKG.eExCommand.eINFO ) {
-                    Track tempParseTrack = new Track();
-                    tempParseTrack.updateTrackInfo(dataDev);
+                    MainGanetPKG.eExCommand parseExCommand = getExCommand(exCommand);
+                    if( parseExCommand == MainGanetPKG.eExCommand.eINFO ) {
+                        Track tempParseTrack = new Track();
+                        tempParseTrack.updateTrackInfo(dataDev);
 
-                    if( mTrack.containsKey(tempParseTrack.getTrackId()) ) {
-                        Track margeParseTrack = mTrack.get(tempParseTrack.getTrackId());
-                        margeParseTrack.trackMarge(tempParseTrack);
-                        mTrack.put(tempParseTrack.getTrackId(), margeParseTrack);
-                    } else mTrack.put(tempParseTrack.getTrackId(), tempParseTrack );
-                    activeParseID = eParse.eTr;
-                } else if( parseExCommand == MainGanetPKG.eExCommand.ePLAY ) {
-                    mActiveTrack.updateActiveTrackInfo( dataDev );
-                    activeParseID = eParse.eActiveTr;
-                } else if ( parseExCommand == MainGanetPKG.eExCommand.eFOLDER ){
-                    mFolder.updateFolderInfo( exCommand, dataDev );
-                    activeParseID = eParse.eFolder;
-                } else if( parseExCommand == MainGanetPKG.eExCommand.eEjected ){
-                    mTrack.clear();
-                    mFolder.clearAll();
-                    activeParseID = eParse.eEjectDisk;
-                } else if( parseExCommand == MainGanetPKG.eExCommand.eSELECT ) {
-                    activeDiskID = getActiveDisk( dataDev );
-                    activeParseID = eParse.eInsertDisk;
-                }
-            } else if ( (line.indexOf("680231020200") != -1) && dstDev.equals("131") ){
-                commandDev = line.substring( chPos, chPos += 12 );
-                dataDev = line.substring( chPos, chPos += 2 );
-                dataDev = dataDev.replace( "FF", "00" );
+                        if( mTrack.containsKey(tempParseTrack.getTrackId()) ) {
+                            Track margeParseTrack = mTrack.get(tempParseTrack.getTrackId());
+                            margeParseTrack.trackMarge(tempParseTrack);
+                            mTrack.put(tempParseTrack.getTrackId(), margeParseTrack);
+                        } else mTrack.put(tempParseTrack.getTrackId(), tempParseTrack );
+                        activeParseID = eParse.eTr;
+                    } else if( parseExCommand == MainGanetPKG.eExCommand.ePLAY ) {
+                        mActiveTrack.updateActiveTrackInfo( dataDev );
+                        activeParseID = eParse.eActiveTr;
+                    } else if ( parseExCommand == MainGanetPKG.eExCommand.eFOLDER ){
+                        mFolder.updateFolderInfo( exCommand, dataDev );
+                        activeParseID = eParse.eFolder;
+                    } else if( parseExCommand == MainGanetPKG.eExCommand.eEjected ){
+                        mTrack.clear();
+                        mFolder.clearAll();
+                        activeParseID = eParse.eEjectDisk;
+                    } else if( parseExCommand == MainGanetPKG.eExCommand.eSELECT ) {
+                        activeDiskID = getActiveDisk( dataDev );
+                        activeParseID = eParse.eInsertDisk;
+                    }
+                } else if ( (line.indexOf("680231020200") != -1) && dstDev.equals("131") ){
+                    commandDev = line.substring( chPos, chPos += 12 );
+                    dataDev = line.substring( chPos, chPos += 2 );
+                    dataDev = dataDev.replace( "FF", "00" );
 
-                mVol.setVol( Integer.valueOf(dataDev, 16).intValue() );
-                activeParseID = eParse.eVolume;
-            } else if( (line.indexOf("68073102") != -1) && dstDev.equals("131")  ) { //RADIO
-                commandDev = line.substring( chPos, chPos += 8 );
-                exCommand = line.substring( chPos, chPos += 4 );
-                int endPos = (line.length() - 3); //without 2last symbols (CRS)
-                dataDev = line.substring( chPos, endPos );
+                    mVol.setVol( Integer.valueOf(dataDev, 16).intValue() );
+                    activeParseID = eParse.eVolume;
+                } else if( (line.indexOf("68073102") != -1) && dstDev.equals("131")  ) { //RADIO
+                    commandDev = line.substring( chPos, chPos += 8 );
+                    exCommand = line.substring( chPos, chPos += 4 );
+                    int endPos = (line.length() - 3); //without 2last symbols (CRS)
+                    dataDev = line.substring( chPos, endPos );
 
-                mRadio.mCurrRAction = mRadio.getCommand(exCommand);
-                if ( RadioAction.eRadioCommand.eChange != mRadio.mCurrRAction &&
-                        RadioAction.eRadioCommand.eNone != mRadio.mCurrRAction ) {
+                    mRadio.mCurrRAction = mRadio.getCommand(exCommand);
+                    if ( RadioAction.eRadioCommand.eChange != mRadio.mCurrRAction &&
+                            RadioAction.eRadioCommand.eNone != mRadio.mCurrRAction ) {
                     /*
 183131	68073102	0100	01	01	1010	FF50	1B 	- Store1	FM1  101.1 FM  (play)
 183131	68073102	0100	03	01	1018	FF40	15	- 101.8 FM  Store3
                      */
-                    chPos = 0;
-                    String tempData = dataDev.substring( chPos, chPos += 2 );
-                    mRadio.mStoreID = Integer.valueOf(tempData).intValue();
+                        chPos = 0;
+                        String tempData = dataDev.substring( chPos, chPos += 2 );
+                        mRadio.mStoreID = Integer.valueOf(tempData).intValue();
 
-                    tempData = dataDev.substring( chPos, chPos += 2 );
-                    mRadio.setRadioType( tempData );
+                        tempData = dataDev.substring( chPos, chPos += 2 );
+                        mRadio.setRadioType( tempData );
 
-                    tempData = dataDev.substring( chPos, chPos += 4 );
-                    mRadio.setFrequency( tempData );
+                        tempData = dataDev.substring( chPos, chPos += 4 );
+                        mRadio.setFrequency( tempData );
 
-                    tempData = dataDev.substring( chPos += 2, ++chPos );
-                    tempData = tempData.replace("F", "0");
-                    mRadio.mRQuality = Integer.valueOf(tempData).intValue();
-                    activeParseID = eParse.eRadio;
+                        tempData = dataDev.substring( chPos += 2, ++chPos );
+                        tempData = tempData.replace("F", "0");
+                        mRadio.mRQuality = Integer.valueOf(tempData).intValue();
+                        activeParseID = eParse.eRadio;
+                    }
                 }
             }
+            this.mGaNET.invalidate( activeParseID );
         }
-        return activeParseID;
+        vGANETCommand.clear();
+    }
+
+    private void extractGaNetLine( String lineTmp ) {
+        boolean startAdd = false;
+//        boolean stopAdd = false;
+
+        buffer += lineTmp;
+        String retVal = "";
+
+        for( int a = 0; a < buffer.length(); a++ ) {
+            if( !startAdd && (buffer.charAt(a)  == '<') ) {
+                startAdd = true;
+//                stopAdd = false;
+                retVal = String.valueOf( buffer.charAt(a) );
+            } else if ( startAdd && (buffer.charAt(a)  == '>') ) {
+                startAdd = false;
+//                stopAdd = true;
+                retVal += String.valueOf( buffer.charAt(a) );
+                vGANETCommand.add( retVal );
+                buffer = buffer.substring( a+1, buffer.length() );
+                a = 0;
+            } else if (  startAdd ) {
+                retVal += String.valueOf( buffer.charAt(a) );
+            }
+        }
+
+//        return retVal;
     }
 
 

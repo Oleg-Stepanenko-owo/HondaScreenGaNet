@@ -1,14 +1,27 @@
 package com.ganet.catfish.hondascreenganet;
 
+import android.content.BroadcastReceiver;
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentFilter;
+import android.content.ServiceConnection;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Message;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
-import android.widget.ListView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.ganet.catfish.hondascreenganet.Data.ActiveTrack;
+import com.ganet.catfish.hondascreenganet.Data.Track;
+
+import java.lang.ref.WeakReference;
 import java.util.Map;
+import java.util.Set;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -16,8 +29,115 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private ReadFromFile readFileObj;
     private TextView timeTextView;
     private Button mStartBtn;
-    private TextView tracksList, tvAction, tvVol, tvPlayTrack;
+    private TextView tracksList, tvAction, tvVol, tvPlayTrack, vtComLog;
 
+    private MyHandler mHandler;
+    private UsbCom usbService;
+    private LogToFile mFileLog;
+
+    //--------------------- USB SERIAL ------------------------------------------------------
+    /*
+    * Notifications from UsbService will be received here.
+    */
+    private final BroadcastReceiver mUsbReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            switch (intent.getAction()) {
+                case UsbCom.ACTION_USB_PERMISSION_GRANTED: // USB PERMISSION GRANTED
+                    Toast.makeText(context, "USB Ready", Toast.LENGTH_SHORT).show();
+                    break;
+                case UsbCom.ACTION_USB_PERMISSION_NOT_GRANTED: // USB PERMISSION NOT GRANTED
+                    Toast.makeText(context, "USB Permission not granted", Toast.LENGTH_SHORT).show();
+                    break;
+                case UsbCom.ACTION_NO_USB: // NO USB CONNECTED
+                    Toast.makeText(context, "No USB connected", Toast.LENGTH_SHORT).show();
+                    break;
+                case UsbCom.ACTION_USB_DISCONNECTED: // USB DISCONNECTED
+                    Toast.makeText(context, "USB disconnected", Toast.LENGTH_SHORT).show();
+                    break;
+                case UsbCom.ACTION_USB_NOT_SUPPORTED: // USB NOT SUPPORTED
+                    Toast.makeText(context, "USB device not supported", Toast.LENGTH_SHORT).show();
+                    break;
+            }
+        }
+    };
+
+    private void setFilters() {
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(UsbCom.ACTION_USB_PERMISSION_GRANTED);
+        filter.addAction(UsbCom.ACTION_NO_USB);
+        filter.addAction(UsbCom.ACTION_USB_DISCONNECTED);
+        filter.addAction(UsbCom.ACTION_USB_NOT_SUPPORTED);
+        filter.addAction(UsbCom.ACTION_USB_PERMISSION_NOT_GRANTED);
+        registerReceiver(mUsbReceiver, filter);
+    }
+
+    /*
+     * This handler will be passed to UsbService. Data received from serial port is displayed through this handler
+     */
+    private static class MyHandler extends Handler {
+        static int iPK = 0;
+        private final WeakReference<MainActivity> mActivity;
+
+        public MyHandler(MainActivity activity) {
+            mActivity = new WeakReference<>(activity);
+        }
+
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case UsbCom.MESSAGE_FROM_SERIAL_PORT:
+                    final String data = (String) msg.obj;
+                    // mActivity.get().vtComLog.append(String.valueOf(iPK++) + ":" + data);
+                    new Thread(new Runnable() {
+                        @Override
+                        public void run() {
+                            mActivity.get().mFileLog.writeFile( data );
+                            mActivity.get().mGANET.mParser.parseLine(data);
+                        }
+                    }).start();
+
+                    break;
+                case UsbCom.CTS_CHANGE:
+                    Toast.makeText(mActivity.get(), "CTS_CHANGE",Toast.LENGTH_LONG).show();
+                    break;
+                case UsbCom.DSR_CHANGE:
+                    Toast.makeText(mActivity.get(), "DSR_CHANGE",Toast.LENGTH_LONG).show();
+                    break;
+            }
+        }
+    }
+
+    private void startService(Class<?> service, ServiceConnection serviceConnection, Bundle extras) {
+        if (!UsbCom.SERVICE_CONNECTED) {
+            Intent startService = new Intent(this, service);
+            if (extras != null && !extras.isEmpty()) {
+                Set<String> keys = extras.keySet();
+                for (String key : keys) {
+                    String extra = extras.getString(key);
+                    startService.putExtra(key, extra);
+                }
+            }
+            startService(startService);
+        }
+        Intent bindingIntent = new Intent(this, service);
+        bindService(bindingIntent, serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    private final ServiceConnection usbConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName arg0, IBinder arg1) {
+            usbService = ((UsbCom.UsbBinder) arg1).getService();
+            usbService.setHandler(mHandler);
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName arg0) {
+            usbService = null;
+        }
+    };
+
+    //---------------------------------------------- main functionality ----------------------
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -28,16 +148,32 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvAction = (TextView) findViewById(R.id.tvAction);
         tvVol = (TextView) findViewById(R.id.tvVol);
         tvPlayTrack = (TextView) findViewById(R.id.tvPlayTrack);
+        vtComLog = (TextView) findViewById(R.id.tvComLog);
 
-
+        mFileLog = new LogToFile(this);
+        mHandler = new MyHandler(this);
 
         mGANET = new GaNetManager( this );
-        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/yam_fm1.txt", mGANET );
+        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/Mylog.txt", mGANET );
         mStartBtn.setOnClickListener( this );
+
+        setFilters();  // Start listening notifications from UsbService
+        startService(UsbCom.class, usbConnection, null); // Start UsbService(if it was not started before) and Bind it
     }
 
-    public void invalidate ( ParserGANET.eParse updateAction ) {
-        switch ( updateAction ){
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mUsbReceiver);
+        unbindService(usbConnection);
+    }
+
+    /**
+     *
+     * @param updateAction
+     */
+    public void invalidate (ParserGANET.eParse updateAction ) {
+        switch ( updateAction ) {
             case eActiveTr:
                 updateActiveTrackView( mGANET.mActiveTrack );
                 break;
@@ -115,7 +251,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         );
     }
 
-    public void updateTrackView(final Map<Integer, Track> tracks ) {
+    public void updateTrackView( final Map<Integer, Track> tracks ) {
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {

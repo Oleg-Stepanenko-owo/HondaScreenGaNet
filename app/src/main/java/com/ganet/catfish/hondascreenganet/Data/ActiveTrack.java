@@ -1,4 +1,4 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
 
 /**
  * Created by oleg on 25.07.2016.
@@ -12,7 +12,7 @@ public class ActiveTrack {
     public int folderId;
     public int trackId;
 
-    ActiveTrack() {
+    public ActiveTrack() {
         diskID = -1;
         playMin = 0;
         playSec = 0;

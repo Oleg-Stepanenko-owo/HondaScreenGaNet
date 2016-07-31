@@ -1,4 +1,4 @@
-package com.ganet.catfish.hondascreenganet;
+package com.ganet.catfish.hondascreenganet.Data;
 
 /**
  * Created by oleg on 26.07.2016.
