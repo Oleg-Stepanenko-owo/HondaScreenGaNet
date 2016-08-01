@@ -21,7 +21,7 @@ public class ParserGANET {
         eFolder,
         eTime,
         eEjectDisk,
-        eInsertDisk,
+        eInsertTrack,
         eVolume,
         eRadio,
         eNone
@@ -77,12 +77,15 @@ public class ParserGANET {
                 dstDev = line.substring( chPos, chPos += 3 );
 
                 // TIME
-                if( line.indexOf("600D01000140", chPos) != -1 ){
+                if( line.indexOf("600D01000140", chPos) != -1 ) {
                     commandDev = line.substring( chPos, chPos += 12 );
                     dataDev = line.substring( chPos, chPos += 4 );
                     mDevTime.setDevTime( dataDev );
                     activeParseID = eParse.eTime;
-                } else if( (line.indexOf("684B3102") != -1) && dstDev.equals("131") ) {
+                }
+                // CD\DVD DISK
+                else if( (line.indexOf("684B3102") != -1) && dstDev.equals("131") )
+                {
                     commandDev = line.substring( chPos, chPos += 8 );
                     exCommand = line.substring( chPos, chPos += 4 );
                     int endPos = (line.length() - 3); //without 2last symbols (CRS)
@@ -109,18 +112,24 @@ public class ParserGANET {
                         mTrack.clear();
                         mFolder.clearAll();
                         activeParseID = eParse.eEjectDisk;
-                    } else if( parseExCommand == MainGanetPKG.eExCommand.eSELECT ) {
-                        activeDiskID = getActiveDisk( dataDev );
-                        activeParseID = eParse.eInsertDisk;
+                    } else if( parseExCommand == MainGanetPKG.eExCommand.eBeforePlay) {
+                        mActiveTrack.updateActiveTrackInfo( dataDev );
+                        activeParseID = eParse.eInsertTrack;
                     }
-                } else if ( (line.indexOf("680231020200") != -1) && dstDev.equals("131") ){
+                }
+                // VOLUME
+                else if ( (line.indexOf("680231020200") != -1) && dstDev.equals("131") )
+                {
                     commandDev = line.substring( chPos, chPos += 12 );
                     dataDev = line.substring( chPos, chPos += 2 );
                     dataDev = dataDev.replace( "FF", "00" );
 
                     mVol.setVol( Integer.valueOf(dataDev, 16).intValue() );
                     activeParseID = eParse.eVolume;
-                } else if( (line.indexOf("68073102") != -1) && dstDev.equals("131")  ) { //RADIO
+                }
+                // FM-AM RADIO
+                else if( (line.indexOf("68073102") != -1) && dstDev.equals("131")  )
+                {
                     commandDev = line.substring( chPos, chPos += 8 );
                     exCommand = line.substring( chPos, chPos += 4 );
                     int endPos = (line.length() - 3); //without 2last symbols (CRS)
@@ -253,8 +262,8 @@ public class ParserGANET {
                 return MainGanetPKG.eExCommand.eStartEject;
             case "1B00": //end Eject Disk
                 return MainGanetPKG.eExCommand.eEjected;
-            case "0200": //Insert Disk
-                return MainGanetPKG.eExCommand.eSELECT;
+            case "0200": //preparing before play track
+                return MainGanetPKG.eExCommand.eBeforePlay;
         }
         return MainGanetPKG.eExCommand.eNONE;
     }

@@ -177,6 +177,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void invalidate (ParserGANET.eParse updateAction ) {
         switch ( updateAction ) {
             case eActiveTr:
+            case eInsertTrack:
                 updateActiveTrackView( mGANET.mActiveTrack );
                 break;
             case eTr:
@@ -190,10 +191,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case eEjectDisk:
                 mGANET.currentDiskId = 0;
                 mGANET.currentLevel = 0;
-                updataDiskUi( mGANET.currentDiskId );
-                break;
-            case eInsertDisk:
-                updataDiskUi( mGANET.currentDiskId );
+                updataDiskUi( updateAction );
                 break;
             case eVolume:
                 updateVolUi( mGANET.mVol.getVol() );
@@ -203,7 +201,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         }
     }
 
-    private void updataDiskUi(final int diskID ) {
+    private void updataDiskUi( final ParserGANET.eParse updateAction ) {
         runOnUiThread(new Runnable() {
                           @Override
                           public void run() {
@@ -212,16 +210,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                               TextView tvTime = (TextView) findViewById( R.id.tvTrackTime );
 
                               //Eject
-                              if( diskID == 0 ){
+                              if( updateAction == ParserGANET.eParse.eEjectDisk ){
                                   tracksList.setText("");
                                   tvDisk.setText( "" );
                                   tvTr.setText( "" );
+                                  tvPlayTrack.setText( "" );
                                   tvTime.setText( R.string.defaultTime );
                                   tvAction.setText("EJECT");
-                              } else { //Insert disk
-                                  tvAction.setText("ISERT");
-                                  TextView tvDisk1 = (TextView) findViewById( R.id.tvTrackDisk );
-                                  tvDisk.setText( String.valueOf(diskID) );
+                              } else if( updateAction == ParserGANET.eParse.eInsertTrack) { //Insert disk
+                                  tvAction.setText("PLAY");
+                                  tvTr.setText( "" );
+                                  tvTime.setText( R.string.defaultTime );
                               }
                           }
                       }
@@ -284,7 +283,9 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
                               tvDisk.setText( String.valueOf(activeTrack.diskID) );
                               tvTr.setText( String.valueOf(activeTrack.trackId) );
-                              tvTime.setText( String.valueOf(activeTrack.playMin) + ":" + String.valueOf(activeTrack.playSec) );
+
+                              String sSec = String.format( "%02d" , activeTrack.playSec);
+                              tvTime.setText( String.valueOf(activeTrack.playMin) + ":" + sSec );
                               tvAction.setText("PLAY");
 
                               tvPlayTrack.setText( mGANET.getTrackById(activeTrack.trackId) );

@@ -105,7 +105,8 @@
             <LinearLayout
                 android:orientation="vertical"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent">
+                android:layout_height="match_parent"
+                android:layout_marginLeft="50dp">
 
                 <TextView
                     android:layout_width="match_parent"
@@ -133,7 +134,8 @@
                 android:layout_height="wrap_content"
                 android:textAppearance="?android:attr/textAppearanceLarge"
                 android:text="@string/defaultTime"
-                android:id="@+id/tvTrackTime" />
+                android:id="@+id/tvTrackTime"
+                android:layout_marginLeft="10dp" />
         </LinearLayout>
     </LinearLayout>
 

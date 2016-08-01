@@ -44,19 +44,19 @@ public class ActiveTrack {
         diskID = Integer.valueOf(valueCom);
 
         valueCom = data.substring( textPos+=4, textPos +=2 );
-        valueCom = valueCom.replace( "F", "" );
+        valueCom = valueCom.replace( "F", "0" );
         playMin = Integer.valueOf(valueCom);
 
         valueCom = data.substring( textPos, textPos +=2 );
-        valueCom = valueCom.replace( "F", "" );
+        valueCom = valueCom.replace( "F", "0" );
         playSec = Integer.valueOf(valueCom);
 
         valueCom = data.substring( textPos +=2, textPos +=2 );
-        valueCom = valueCom.replace( "F", "" );
+        valueCom = valueCom.replace( "F", "0" );
         folderId = Integer.valueOf(valueCom);
 
         valueCom = data.substring( textPos +=2, textPos +=2 );
-        valueCom = valueCom.replace( "F", "" );
+        valueCom = valueCom.replace( "F", "0" );
         trackId = Integer.valueOf(valueCom);
     }
 }

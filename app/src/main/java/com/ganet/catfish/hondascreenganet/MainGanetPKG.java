@@ -12,7 +12,7 @@ public class MainGanetPKG {
 
     static public enum eExCommand {
         ePLAY,          //0300
-        eSELECT,        //0200
+        eBeforePlay,    //0200
         eLOAD,          //1000
         eSTOP,          //2200
         eStartEject,    //1A00
