@@ -17,6 +17,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.ganet.catfish.hondascreenganet.Data.ActiveTrack;
+import com.ganet.catfish.hondascreenganet.Data.RadioAction;
 import com.ganet.catfish.hondascreenganet.Data.Track;
 
 import java.lang.ref.WeakReference;
@@ -150,13 +151,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         tvAction = (TextView) findViewById(R.id.tvAction);
         tvVol = (TextView) findViewById(R.id.tvVol);
         tvPlayTrack = (TextView) findViewById(R.id.tvPlayTrack);
-        vtComLog = (TextView) findViewById(R.id.tvComLog);
 
         mFileLog = new LogToFile(this);
         mHandler = new MyHandler(this);
 
         mGANET = new GaNetManager( this );
-        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/Mylog.txt", mGANET );
+        readFileObj = new ReadFromFile("/data/data/com.ganet.catfish.hondascreenganet/log/myLOG1-fm.log", mGANET );
         mStartBtn.setOnClickListener( this );
 
         setFilters();  // Start listening notifications from UsbService
@@ -196,9 +196,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             case eVolume:
                 updateVolUi( mGANET.mVol.getVol() );
                 break;
+            case eRadio:
+                updateRadioUi( mGANET.mRadio );
+                break;
             case eNone:
                 break;
         }
+    }
+
+    private void updateRadioUi(final RadioAction mRadio ) {
+        runOnUiThread(new Runnable() {
+                          @Override
+                          public void run() {
+                              TextView tvRType = (TextView) findViewById( R.id.tvRType );
+                              TextView tvRFr = (TextView) findViewById( R.id.tvFreqv );
+
+                              if(mRadio.mCurrRAction == RadioAction.eRadioCommand.ePlay ) {
+                                  tvRType.setText( mRadio.getCurrRadioType() );
+                                  tvRFr.setText(mRadio.mFrequency);
+                              }
+                          }
+                      }
+        );
     }
 
     private void updataDiskUi( final ParserGANET.eParse updateAction ) {

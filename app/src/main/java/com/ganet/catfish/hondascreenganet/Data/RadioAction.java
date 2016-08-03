@@ -57,6 +57,12 @@ public class RadioAction {
         else if(radioType.equals("11"))mRadioType = eRadioType.eAM;
     }
 
+    public String getCurrRadioType() {
+        if( mRadioType == eRadioType.eFM1 ) return "FM1";
+        if( mRadioType == eRadioType.eFM2 ) return "FM2";
+        return "AM";
+    }
+
     public void setFrequency( String data ) {
         String tmpFrq = data.replace("F","");
         if( mRadioType == eRadioType.eAM ) mFrequency = tmpFrq;

@@ -5,4 +5,5 @@
     <string name="stTrack">Track#</string>
     <string name="stTime">Time  </string>
     <string name="stVolume">Vol:</string>
+    <string name="stRadioType">Type:</string>
 </resources>
